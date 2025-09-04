@@ -3,6 +3,7 @@ import { Message } from "../models/message.model";
 import User from "../models/user.model";
 import AppError from "../utils/appError";
 import { catchAsync } from "../utils/catchAsync";
+import cloudinary from "../utils/cloudinary";
 export const getUsersForSidebar = catchAsync(
    async (req: Request, res: Response, next: NextFunction) => {
       const loggedInUserId = req.user?.id;
@@ -52,8 +53,15 @@ export const getSharedMessages = catchAsync(
 
 export const sendMessage = catchAsync(
    async (req: Request, res: Response, next: NextFunction) => {
-      const loggedInUserId = req.user?.id;
+      if (!req.body || !req.body.profilePic) {
+         return res.status(400).json({
+            message: "Provide a profile picture please",
+         });
+      }
       const { receiverId, text, image } = req.body;
+
+      const uploadResponse = await cloudinary.uploader.upload(image);
+      const loggedInUserId = req.user?.id;
       if (!receiverId) {
          return next(AppError("Please provide the receiver's id", 400));
       }
@@ -61,7 +69,7 @@ export const sendMessage = catchAsync(
          senderId: loggedInUserId,
          receiverId,
          text,
-         image,
+         image: uploadResponse.secure_url,
       });
       res.status(201).json({
          status: "success",
@@ -73,21 +81,30 @@ export const editMessage = catchAsync(
    async (req: Request, res: Response, next: NextFunction) => {
       const loggedInUserId = req.user?.id;
       const { receiverId, text, image } = req.body;
+      let updatedObject: any = {
+         text,
+      };
+      if (image) {
+         const uploadResponse = await cloudinary.uploader.upload(image);
+         updatedObject = {
+            text,
+            image: uploadResponse.secure_url,
+         };
+      }
 
       if (!receiverId) {
          return next(AppError("Please provide the receiver's id", 400));
       }
+
       const newMessage = await Message.findOneAndUpdate(
          {
             senderId: loggedInUserId,
             receiverId,
          },
-         {
-            text,
-            image,
-         },
+         updatedObject,
          { new: true }
       );
+
       res.status(201).json({
          status: "success",
          message: newMessage,
@@ -96,5 +113,19 @@ export const editMessage = catchAsync(
 );
 
 export const deleteMessage = catchAsync(
-   async (req: Request, res: Response, next: NextFunction) => {}
+   async (req: Request, res: Response, next: NextFunction) => {
+      const loggedInUserId = req.user?.id;
+      const { receiverId } = req.body;
+      if (!receiverId) {
+         return next(AppError("Please provide the receiver's id", 400));
+      }
+      await Message.findOneAndDelete({
+         senderId: loggedInUserId,
+         receiverId,
+      });
+      res.status(204).json({
+         status: "success",
+         message: null,
+      });
+   }
 );
