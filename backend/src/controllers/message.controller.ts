@@ -71,6 +71,7 @@ export const sendMessage = catchAsync(
          text,
          image: uploadResponse.secure_url,
       });
+      //TODO: Use WebSocket to send real-time message to receiver
       res.status(201).json({
          status: "success",
          message: newMessage,
