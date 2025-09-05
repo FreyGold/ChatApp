@@ -2,8 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { showError } from "@/lib/toast-helpers";
 import { cn } from "@/lib/utils";
+import { useLogin } from "@/services/hooks/auth.react-query";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { Loader2Icon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { object, string } from "yup";
 
@@ -31,8 +34,19 @@ export function LoginForm({
       resolver: yupResolver(userSchema),
    });
 
-   const onSubmit = (data: FormData) => {
-      console.log("✅ Form Submitted:", data);
+   const { mutateAsync: login, isPending } = useLogin({
+      onSuccess: (data) => {
+         console.log("Login successful", data);
+         window.location.href = "/";
+      },
+      onError: (error) => {
+         showError(error.response.data.message);
+      },
+   });
+
+   const onSubmit = async (data: FormData) => {
+      const res = await login(data);
+      console.log(res);
    };
 
    return (
@@ -69,7 +83,13 @@ export function LoginForm({
                         )}
                      </div>
                      <div className="flex flex-col gap-3">
-                        <Button type="submit" className="w-full cursor-pointer">
+                        <Button
+                           type="submit"
+                           className="w-full cursor-pointer"
+                           disabled={isPending}>
+                           {isPending && (
+                              <Loader2Icon className="animate-spin" />
+                           )}
                            Login
                         </Button>
                         <Button
@@ -86,7 +106,7 @@ export function LoginForm({
                   <div className="mt-4 text-center text-sm">
                      Don't have an account yet?{" "}
                      <a
-                        href="/signup"
+                        href="/auth/signup"
                         className="underline underline-offset-4 cursor-pointer">
                         Signup
                      </a>
