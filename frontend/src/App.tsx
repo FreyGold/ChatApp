@@ -1,4 +1,4 @@
-import { useTheme } from "@/context/providers/ThemeProvider";
+import { useTheme } from "@/services/context/providers/ThemeProvider";
 
 const App = () => {
    const { theme, toggleTheme } = useTheme();
