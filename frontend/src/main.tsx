@@ -5,6 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import App from "./App.tsx";
 import { ThemeProvider } from "./context/providers/ThemeProvider.tsx";
 import "./index.css";
+import AuthLayout from "./layout/AuthLayout.tsx";
 import LoginPage from "./pages/auth/LoginPage.tsx";
 const router = createBrowserRouter([
    {
@@ -13,12 +14,15 @@ const router = createBrowserRouter([
       children: [],
    },
    {
-      path: "/signup",
-      element: <SignUpPage />,
-   },
-   {
-      path: "/login",
-      element: <LoginPage />,
+      path: "/auth",
+      element: <AuthLayout />,
+      children: [
+         { path: "login", element: <LoginPage /> },
+         {
+            path: "signup",
+            element: <SignUpPage />,
+         },
+      ],
    },
 ]);
 createRoot(document.getElementById("root")!).render(
