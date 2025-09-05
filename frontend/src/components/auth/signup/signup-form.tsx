@@ -2,7 +2,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { showError } from "@/lib/toast-helpers";
 import { cn } from "@/lib/utils";
+import { useLogin, useSignup } from "@/services/hooks/auth.react-query";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
 import { object, string } from "yup";
@@ -39,8 +41,19 @@ export function SignupForm({
       resolver: yupResolver(userSchema),
    });
 
-   const onSubmit = (data: FormData) => {
-      console.log("✅ Form Submitted:", data);
+   const { mutateAsync: login, isPending } = useSignup({
+      onSuccess: (data) => {
+         console.log("Login successful", data);
+         window.location.href = "/";
+      },
+      onError: (error) => {
+         showError(error.response.data.message);
+      },
+   });
+
+   const onSubmit = async (data: FormData) => {
+      const res = await login(data);
+      console.log(res);
    };
 
    return (
