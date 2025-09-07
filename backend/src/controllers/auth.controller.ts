@@ -145,6 +145,8 @@ export const editProfile = catchAsync(async (req: Request, res: Response) => {
    });
 });
 export const checkAuth = catchAsync(async (req: Request, res: Response) => {
+   console.log("Cookies:", req.cookies);
+   console.log("---------------------");
    res.status(200).json({
       status: "success",
       data: {

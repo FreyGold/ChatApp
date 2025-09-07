@@ -4,14 +4,12 @@
       "module": "CommonJS",
       "rootDir": "./src",
       "outDir": "./dist",
-      "moduleResolution": "node",
       "esModuleInterop": true,
       "allowSyntheticDefaultImports": true,
       "strict": true,
       "types": ["node"],
       "skipLibCheck": true,
-      "typeRoots": ["./node_modules/@types", "./src/types"],
-      "ignoreDeprecations": "6.0"
+      "typeRoots": ["./node_modules/@types", "./src/types"]
    },
    "include": ["src/**/*"],
    "ts-node": {

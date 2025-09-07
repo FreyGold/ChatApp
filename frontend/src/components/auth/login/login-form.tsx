@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showError } from "@/lib/toast-helpers";
 import { cn } from "@/lib/utils";
-import { useLogin } from "@/services/hooks/auth.react-query";
+import { useCheckAuth, useLogin } from "@/services/hooks/auth.react-query";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Loader2Icon } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -33,16 +33,30 @@ export function LoginForm({
    } = useForm<FormData>({
       resolver: yupResolver(userSchema),
    });
+   const { data, isLoading } = useCheckAuth();
 
    const { mutateAsync: login, isPending } = useLogin({
-      onSuccess: (data) => {
-         console.log("Login successful", data);
-      },
+      onSuccess: () => {},
       onError: (error) => {
          showError(error.response.data.message);
       },
    });
 
+   if (isLoading) {
+      return <div>Loading...</div>;
+   }
+   if (data?.user) {
+      return (
+         <div className="text-center">
+            <p className="mb-4">
+               You are already logged in as {data.user.fullName}.
+            </p>
+            <a href="/" className="underline underline-offset-4 cursor-pointer">
+               Go to home page
+            </a>
+         </div>
+      );
+   }
    const onSubmit = async (data: FormData) => {
       const res = await login(data);
       console.log(res);

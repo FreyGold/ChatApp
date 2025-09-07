@@ -2,7 +2,6 @@ import axios from "axios";
 
 const api = axios.create({
    baseURL: "http://localhost:5000/api/auth",
-   withCredentials: true,
 });
 
 export const login = async (email: string, password: string) => {
@@ -11,6 +10,9 @@ export const login = async (email: string, password: string) => {
       { email, password },
       { withCredentials: true }
    );
+   console.log("Login response headers:", response.headers);
+   console.log("Set-Cookie header:", response.headers["set-cookie"]);
+   console.log("All response headers:", Object.keys(response.headers));
    return response.data;
 };
 export const signup = async (
@@ -27,17 +29,19 @@ export const signup = async (
 };
 
 export const logout = async () => {
-   const response = await api.post("/logout");
+   const response = await api.post("/logout", { withCredentials: true });
    return response.data;
 };
 export const checkAuth = async () => {
-   const response = await api.get("/check");
+   const response = await api.get("/check", { withCredentials: true });
    return response.data;
 };
 export const updateProfile = async (data: {
    fullName?: string;
    image?: File;
 }) => {
-   const response = await api.patch("/update-profile", data);
+   const response = await api.patch("/update-profile", data, {
+      withCredentials: true,
+   });
    return response.data;
 };

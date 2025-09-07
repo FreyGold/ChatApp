@@ -4,19 +4,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showError } from "@/lib/toast-helpers";
 import { cn } from "@/lib/utils";
-import { useLogin, useSignup } from "@/services/hooks/auth.react-query";
+import { useSignup } from "@/services/hooks/auth.react-query";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { Loader2Icon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { object, string } from "yup";
 
 type FormData = {
-   name: string;
+   fullName: string;
    email: string;
    password: string;
 };
 
 const userSchema = object({
-   name: string().required("Please enter your name"),
+   fullName: string().required("Please enter your name"),
    email: string()
       .email("Please enter a valid email")
       .required("Email is required"),
@@ -41,9 +42,9 @@ export function SignupForm({
       resolver: yupResolver(userSchema),
    });
 
-   const { mutateAsync: login, isPending } = useSignup({
+   const { mutateAsync: signup, isPending } = useSignup({
       onSuccess: (data) => {
-         console.log("Login successful", data);
+         console.log("Signing up successful!", data);
          window.location.href = "/";
       },
       onError: (error) => {
@@ -52,7 +53,7 @@ export function SignupForm({
    });
 
    const onSubmit = async (data: FormData) => {
-      const res = await login(data);
+      const res = await signup(data);
       console.log(res);
    };
 
@@ -66,16 +67,16 @@ export function SignupForm({
                <form onSubmit={handleSubmit(onSubmit)}>
                   <div className="flex flex-col gap-5">
                      <div className="grid gap-3">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="fullName">Name</Label>
                         <Input
-                           {...register("name")}
-                           id="name"
+                           {...register("fullName")}
+                           id="fullName"
                            type="text"
                            placeholder="John Doe"
                         />
-                        {errors.name && (
+                        {errors.fullName && (
                            <span className="text-destructive text-sm relative">
-                              {errors.name.message}
+                              {errors.fullName.message}
                            </span>
                         )}
                      </div>
@@ -108,7 +109,13 @@ export function SignupForm({
                         )}
                      </div>
                      <div className="flex flex-col gap-3">
-                        <Button type="submit" className="w-full cursor-pointer">
+                        <Button
+                           type="submit"
+                           className="w-full cursor-pointer"
+                           disabled={isPending}>
+                           {isPending && (
+                              <Loader2Icon className="animate-spin" />
+                           )}
                            Signup
                         </Button>
                         <Button
