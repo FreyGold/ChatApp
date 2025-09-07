@@ -37,7 +37,6 @@ export function LoginForm({
    const { mutateAsync: login, isPending } = useLogin({
       onSuccess: (data) => {
          console.log("Login successful", data);
-         window.location.href = "/";
       },
       onError: (error) => {
          showError(error.response.data.message);
