@@ -1,16 +1,20 @@
-import Squares from "@/components/Squares";
+import Silk from "@/components/Silk";
 import { Outlet } from "react-router";
+import { useCSSVariable } from "use-css-dom";
 
 function AuthLayout() {
+   const primaryColor = useCSSVariable("--primary", 0.8, "hex");
+   console.log("hex: ", primaryColor);
+
    return (
       <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-         <div className="fixed inset-0 ">
-            <Squares
-               speed={0.2}
-               squareSize={40}
-               direction="diagonal"
-               borderColor="oklch(0.4815 0.1178 263.3758)"
-               hoverFillColor="oklch(0.6896 0.0714 234.0387)"
+         <div className="fixed inset-0">
+            <Silk
+               speed={4}
+               scale={1}
+               color={primaryColor}
+               noiseIntensity={1}
+               rotation={0}
             />
          </div>
          <Outlet />
