@@ -2,7 +2,7 @@ import SignUpPage from "@/pages/auth/SignUpPage.tsx";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router";
-import App from "./App.tsx";
+import App, { appLoader } from "./App.tsx";
 import Toaster from "./components/ui/toaster/Toaster.tsx";
 import "./index.css";
 import AuthLayout from "./layout/AuthLayout.tsx";
@@ -14,6 +14,7 @@ const router = createBrowserRouter([
    {
       path: "/",
       element: <App />,
+      loader: appLoader,
       children: [{ index: true, element: <ChatPage /> }],
    },
    {

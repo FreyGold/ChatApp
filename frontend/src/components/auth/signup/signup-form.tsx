@@ -4,11 +4,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showError } from "@/lib/toast-helpers";
 import { cn } from "@/lib/utils";
-import { useSignup } from "@/services/hooks/auth.react-query";
+import { useCheckAuth, useSignup } from "@/services/hooks/auth.react-query";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Loader2Icon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { object, string } from "yup";
+import AlreadyIn from "../shared/AlreadyIn";
 
 type FormData = {
    fullName: string;
@@ -41,10 +42,10 @@ export function SignupForm({
    } = useForm<FormData>({
       resolver: yupResolver(userSchema),
    });
+   const { data, isLoading } = useCheckAuth();
 
    const { mutateAsync: signup, isPending } = useSignup({
-      onSuccess: (data) => {
-         console.log("Signing up successful!", data);
+      onSuccess: () => {
          window.location.href = "/";
       },
       onError: (error) => {
@@ -52,9 +53,14 @@ export function SignupForm({
       },
    });
 
+   if (isLoading) {
+      return <div>Loading...</div>;
+   }
+   if (data?.user) {
+      return <AlreadyIn fullName={data.user.fullName} />;
+   }
    const onSubmit = async (data: FormData) => {
-      const res = await signup(data);
-      console.log(res);
+      await signup(data);
    };
 
    return (

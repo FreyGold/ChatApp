@@ -9,6 +9,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Loader2Icon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { object, string } from "yup";
+import AlreadyIn from "../shared/AlreadyIn";
 
 type FormData = {
    email: string;
@@ -34,9 +35,11 @@ export function LoginForm({
       resolver: yupResolver(userSchema),
    });
    const { data, isLoading } = useCheckAuth();
-
+   console.log(data);
    const { mutateAsync: login, isPending } = useLogin({
-      onSuccess: () => {},
+      onSuccess: () => {
+         window.location.href = "/";
+      },
       onError: (error) => {
          showError(error.response.data.message);
       },
@@ -46,20 +49,10 @@ export function LoginForm({
       return <div>Loading...</div>;
    }
    if (data?.user) {
-      return (
-         <div className="text-center">
-            <p className="mb-4">
-               You are already logged in as {data.user.fullName}.
-            </p>
-            <a href="/" className="underline underline-offset-4 cursor-pointer">
-               Go to home page
-            </a>
-         </div>
-      );
+      return <AlreadyIn fullName={data.user.fullName} />;
    }
    const onSubmit = async (data: FormData) => {
-      const res = await login(data);
-      console.log(res);
+      await login(data);
    };
 
    return (
