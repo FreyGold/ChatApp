@@ -4,8 +4,6 @@ import { useCSSVariable } from "use-css-dom";
 
 function AuthLayout() {
    const primaryColor = useCSSVariable("--primary", 0.8, "hex");
-   console.log("hex: ", primaryColor);
-
    return (
       <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
          <div className="fixed inset-0">

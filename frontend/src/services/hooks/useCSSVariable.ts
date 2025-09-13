@@ -54,8 +54,54 @@ export function useCSSVariable(
       ];
    };
 
-   // Helper function to convert colors
+   // RGB to OKLCH conversion
+   const rgbToOklch = (
+      r: number,
+      g: number,
+      b: number
+   ): [number, number, number] => {
+      // Normalize RGB values
+      r = r / 255;
+      g = g / 255;
+      b = b / 255;
 
+      // sRGB to linear RGB (gamma correction)
+      const linearize = (c: number) => {
+         if (c <= 0.04045) {
+            return c / 12.92;
+         } else {
+            return Math.pow((c + 0.055) / 1.055, 2.4);
+         }
+      };
+
+      r = linearize(r);
+      g = linearize(g);
+      b = linearize(b);
+
+      // Linear RGB to OKLAB
+      const l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+      const m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+      const s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+
+      const l_ = Math.cbrt(l);
+      const m_ = Math.cbrt(m);
+      const s_ = Math.cbrt(s);
+
+      // OKLAB to OKLCH
+      const L = 0.2104542553 * l_ + 0.793617785 * m_ - 0.0040720468 * s_;
+      const a = 1.9779984951 * l_ - 2.428592205 * m_ + 0.4505937099 * s_;
+      const b_lab = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.808675766 * s_;
+
+      const C = Math.sqrt(a * a + b_lab * b_lab);
+      let H = (Math.atan2(b_lab, a) * 180) / Math.PI;
+
+      // Normalize hue to 0-360
+      if (H < 0) H += 360;
+
+      return [L, C, H];
+   };
+
+   // Helper function to convert colors
    useEffect(() => {
       const convertColor = (
          color: string,
@@ -235,16 +281,32 @@ export function useCSSVariable(
                   const oklchMatch = color.match(/oklch\((.*?)\)/);
                   if (oklchMatch) {
                      const values = oklchMatch[1].split(" ");
-                     return `oklch(${values[0]} ${values[1]} ${values[2]} / ${alpha})`;
+                     if (alpha < 1) {
+                        return `oklch(${values[0]} ${values[1]} ${values[2]} / ${alpha})`;
+                     } else {
+                        return `oklch(${values[0]} ${values[1]} ${values[2]})`;
+                     }
+                  }
+               } else {
+                  // Convert RGB to OKLCH
+                  const [L, C, H] = rgbToOklch(r, g, b);
+                  if (alpha < 1) {
+                     return `oklch(${L.toFixed(3)} ${C.toFixed(3)} ${H.toFixed(
+                        1
+                     )} / ${alpha})`;
+                  } else {
+                     return `oklch(${L.toFixed(3)} ${C.toFixed(3)} ${H.toFixed(
+                        1
+                     )})`;
                   }
                }
-               return `rgba(${r}, ${g}, ${b}, ${alpha})`;
             }
 
             default:
                return color;
          }
       };
+
       const rootStyles = getComputedStyle(document.documentElement);
       const cssValue = rootStyles.getPropertyValue(variableName).trim();
 

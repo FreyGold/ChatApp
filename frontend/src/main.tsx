@@ -6,6 +6,7 @@ import App from "./App.tsx";
 import Toaster from "./components/ui/toaster/Toaster.tsx";
 import "./index.css";
 import AuthLayout from "./layout/AuthLayout.tsx";
+import ChatPage from "./pages/auth/ChatPage.tsx";
 import LoginPage from "./pages/auth/LoginPage.tsx";
 import { ReactQueryProvider } from "./services/context/providers/ReactQueryProvider.tsx";
 import { ThemeProvider } from "./services/context/providers/ThemeProvider.tsx";
@@ -13,7 +14,7 @@ const router = createBrowserRouter([
    {
       path: "/",
       element: <App />,
-      children: [],
+      children: [{ index: true, element: <ChatPage /> }],
    },
    {
       path: "/auth",
