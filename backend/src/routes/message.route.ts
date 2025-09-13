@@ -14,7 +14,7 @@ router.get("/users", protectRoutes, getUsersForSidebar);
 router.get("/messages", protectRoutes, getSharedMessages);
 router
    .route("/message")
-   .get(protectRoutes, sendMessage)
+   .post(protectRoutes, sendMessage)
    .patch(protectRoutes, editMessage)
    .delete(protectRoutes, deleteMessage);
 

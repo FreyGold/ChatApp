@@ -7,12 +7,13 @@ import cloudinary from "../utils/cloudinary";
 export const getUsersForSidebar = catchAsync(
    async (req: Request, res: Response, next: NextFunction) => {
       const loggedInUserId = req.user?.id;
+      console.log(loggedInUserId);
       const filteredUsers = await User.find({
          _id: { $ne: loggedInUserId },
-      }).select("name photo");
+      }).select("fullName profilePic");
       const currentUser = await User.find({
-         _id: { loggedInUserId },
-      }).select("name photo");
+         _id: loggedInUserId,
+      }).select("-password");
       res.status(200).json({
          status: "success",
          results: filteredUsers.length,
@@ -27,17 +28,18 @@ export const getUsersForSidebar = catchAsync(
 export const getSharedMessages = catchAsync(
    async (req: Request, res: Response, next: NextFunction) => {
       const loggedInUserId = req.user?.id;
-      const { otherUserId, page } = req.body;
+      const targetUser = req.query.targetUser as string;
+      const page = parseInt(req.query.page as string) || 1;
       const limit = 50;
       const skip = (page - 1) * limit;
 
-      if (!otherUserId) {
+      if (!targetUser) {
          return next(AppError("Please provide the other user's id", 400));
       }
       const messages = await Message.find({
          $or: [
-            { senderId: loggedInUserId, receiverId: otherUserId },
-            { senderId: otherUserId, receiverId: loggedInUserId },
+            { senderId: loggedInUserId, receiverId: targetUser },
+            { senderId: targetUser, receiverId: loggedInUserId },
          ],
       })
          .sort({ createdAt: -1 })
@@ -53,14 +55,20 @@ export const getSharedMessages = catchAsync(
 
 export const sendMessage = catchAsync(
    async (req: Request, res: Response, next: NextFunction) => {
-      if (!req.body || !req.body.profilePic) {
+      if (!req.body) {
          return res.status(400).json({
-            message: "Provide a profile picture please",
+            message: "Provide a message",
          });
       }
       const { receiverId, text, image } = req.body;
+      console.log(image);
+      if (!req.body.text && !req.body.image) {
+         return next(AppError("Message cannot be empty", 400));
+      }
 
-      const uploadResponse = await cloudinary.uploader.upload(image);
+      const uploadResponse = req.body.image
+         ? await cloudinary.uploader.upload(image)
+         : null;
       const loggedInUserId = req.user?.id;
       if (!receiverId) {
          return next(AppError("Please provide the receiver's id", 400));
@@ -69,7 +77,7 @@ export const sendMessage = catchAsync(
          senderId: loggedInUserId,
          receiverId,
          text,
-         image: uploadResponse.secure_url,
+         image: req.body.image ? uploadResponse?.secure_url : null,
       });
       //TODO: Use WebSocket to send real-time message to receiver
       res.status(201).json({
@@ -115,14 +123,12 @@ export const editMessage = catchAsync(
 
 export const deleteMessage = catchAsync(
    async (req: Request, res: Response, next: NextFunction) => {
-      const loggedInUserId = req.user?.id;
-      const { receiverId } = req.body;
-      if (!receiverId) {
-         return next(AppError("Please provide the receiver's id", 400));
+      console.log(req.query);
+      if (!req.query.messageId) {
+         return next(AppError("Please provide the message id", 400));
       }
       await Message.findOneAndDelete({
-         senderId: loggedInUserId,
-         receiverId,
+         _id: req.query.messageId,
       });
       res.status(204).json({
          status: "success",
