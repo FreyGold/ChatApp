@@ -1,10 +1,10 @@
-import { NextFunction, Request, Response } from "express";
+import bcrypt from "bcryptjs";
+import { Request, Response } from "express";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import User from "../models/user.model";
 import { catchAsync } from "../utils/catchAsync";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { generateToken } from "../utils/util";
 import cloudinary from "../utils/cloudinary";
+import { generateToken } from "../utils/util";
 type bodyType = {
    fullName: string;
    email: string;
@@ -60,20 +60,31 @@ export const signup = catchAsync(async (req: Request, res: Response) => {
 });
 
 export const login = catchAsync(async (req: Request, res: Response) => {
-   console.log(req.body);
+   const token = req.cookies.jwt;
+   try {
+      const payload = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+
+      return res.status(200).json({
+         message: "You are already logged in",
+      });
+   } catch (err) {
+      // do nothing
+   }
    if (!req.body || !req.body.email || !req.body.password) {
       return res
          .status(400)
          .json({ message: "You need to provide email and password" });
    }
    const { email, password }: bodyType = req.body;
+   console.log(email, password);
    const user = await User.findOne({ email });
    if (!user) {
       return res.status(400).json({
          message: "Email or Password is incorrect",
       });
    }
-   const isMatch = bcrypt.compare(password, user.password);
+   const isMatch = await bcrypt.compare(password, user.password);
+
    if (!isMatch) {
       return res.status(400).json({
          message: "Email or Password is incorrect",
@@ -134,6 +145,8 @@ export const editProfile = catchAsync(async (req: Request, res: Response) => {
    });
 });
 export const checkAuth = catchAsync(async (req: Request, res: Response) => {
+   console.log("Cookies:", req.cookies);
+   console.log("---------------------");
    res.status(200).json({
       status: "success",
       data: {

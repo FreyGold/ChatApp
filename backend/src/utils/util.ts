@@ -8,9 +8,9 @@ export const generateToken = (userId: string, res: Response) => {
    const secret: string = process.env.JWT_SECRET;
    const token = jwt.sign({ userId }, secret, { expiresIn: "1h" });
    res.cookie("jwt", token, {
-      maxAge: 1 * 60 * 60,
+      maxAge: 1 * 60 * 60 * 1000,
       httpOnly: true,
-      sameSite: true,
       secure: process.env.NODE_ENV !== "development",
+      sameSite: "lax",
    });
 };
