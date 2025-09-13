@@ -2,10 +2,11 @@ import axios from "axios";
 
 const api = axios.create({
    baseURL: "http://localhost:5000/api/chat",
+   withCredentials: true,
 });
 
 export const getContacts = async () => {
-   const response = await axios.get("/users");
+   const response = await api.get("/users");
    return response.data;
 };
 export const getSharedMessages = async (targetUser: string, page: number) => {
